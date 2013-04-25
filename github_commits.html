@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!-- by Wit Chitrapongse https://github.com/wchitra -->
+<!-- used the javascript framework, jQuery, to handle getting commits from GitHub -->
+<html>
+	<head>
+		<title>Bootstrap 101 Template</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<!-- Bootstrap -->
+		<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+	</head>
+	<body>
+    	<script src="http://code.jquery.com/jquery.js"></script>
+    	<script src="bootstrap/js/bootstrap.min.js"></script>
+
+		<script type="text/javascript">
+			var GITHUB_URL = "https://api.github.com/repos/"
+			$( document ).ready(function() {
+				resetScreen();
+
+				$( "#update" ).click( function( event ) {
+					var githubRepoUrl = GITHUB_URL + $( "#github-repo" ).val() + "/commits";
+					if( !$( "#github-repo" ).val() ) {
+						// field cannot be blank
+						showErrors("Please enter a repo to view.");
+					}
+					else {
+						// ajax call to github
+						$.get(githubRepoUrl, function( data ) {
+							hideErrors();
+							showFreshTable();
+
+							// loop thru the commits and show date, person who commit a change, and their comment
+							for( var i = 0; i < data.length; i++ ) {
+								var date = data[i]["commit"]["committer"]["date"];
+								var committer = data[i]["commit"]["committer"]["name"];
+								var message = data[i]["commit"]["message"];
+								var commitRow = "<tr><td>" + date.substring(0,10) + "</td><td>" + committer +"</td><td>" + message + "</td></tr>";
+								// add the commit info to the data table
+								$("#github-commits-table tbody").append( commitRow );
+							}
+						}).fail(
+							function( data ) {
+								// cannot find the repo entered, show error
+								showErrors("Repo not found!");
+						});
+					}
+
+					event.preventDefault();
+				});
+			});
+
+			/**
+			* Clear the screen of error messages and hides the results table
+			*/
+			function resetScreen() {
+				$("#github-commits-table").hide();
+				hideErrors();
+			}
+
+			/**
+			* Show error messages and hides the results table
+			* error - message to show
+			*/
+			function showErrors(error) {
+				$("#control-group").addClass("error");
+				$("#github-repo-error").html(error);
+				$("#github-repo-error").show();
+				$("#github-commits-table").hide();
+			}
+
+			/**
+			* Hide messages on the screen
+			*/
+			function hideErrors() {
+				$("#control-group").removeClass("error");
+				$("#github-repo-error").hide();
+				
+			}
+
+			/**
+			* Remove old data from the table
+			*/
+			function showFreshTable() {
+				$("#github-commits-table tbody tr").remove();
+				$("#github-commits-table").show();
+			}
+		</script>
+
+		<div class="container">
+			<form class="github-repo">
+				<h2 class="form-signin-heading">Github Recent Commits</h2>
+				<h4 class="form-signin-heading">by Wit Chitrapongse</h4>
+				<span>wchitra/RubyKoans</span>
+				<span>twitter/bootstrap</span>
+				<fieldset>
+					<label id="repo">Repo: (user/repo)</label>
+					<div id="control-group" class="control-group">
+						<input id="github-repo" type="text" required="true" class="input-block-level" placeholder="Github repo">
+						<span id="github-repo-error" class="help-inline"></span>
+  					</div>
+					<button id="update" class="btn btn-large btn-primary" type="submit">Update</button>
+				</fieldset>
+			</form>
+			<table id="github-commits-table" class="table table-striped table-hover">
+				<thead>
+					<th>Date</th>
+					<th>Name</th>
+					<th>Comments</th>
+				</thead>
+				<tbody>
+				</tbody>
+			</table>
+		</div>
+	</body>
+</html>
